@@ -1,0 +1,34 @@
+{
+  "template": "git@github.com:dktunited/dps-pyspark-template",
+  "commit": "6b16812a4c561491f9bad6a1214491fd8e745765",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "_tech_name": "pyspark",
+      "team_long_name": "spark-training",
+      "team_short_name": "spark-training",
+      "team_group_email": "spark-training@decathlon.com",
+      "project_long_name": "workshop",
+      "project_short_name": "workshop",
+      "project_name_dashes": "spark-training-workshop-pyspark",
+      "project_name_underscores": "spark_training_workshop_pyspark",
+      "version": "2023.11.15.dev8",
+      "description": "training",
+      "python_version": "3.11",
+      "poetry_version": "1.5.1",
+      "s3_project_path_dev": "s3://dev-dct-wksp-dps-spark-training/sessions/session_20231115/SRAVEL11",
+      "s3_project_path_ppd": "s3://ppd-dct-wksp-dps-spark-training/sessions/session_20231115/SRAVEL11",
+      "s3_project_path_prd": "s3://prd-dct-wksp-spark-training/spark-training-workshop-pyspark",
+      "github_actions_aws_role_prod_account": "arn:aws:iam::585305677161:role/BIGDATA-GITHUBACTIONS-SPARK-TRAINING",
+      "github_actions_aws_role_preprod_account": "arn:aws:iam::614303399241:role/BIGDATA-GITHUBACTIONS-SPARK-TRAINING",
+      "databricks_version": "12.2-LTS",
+      "databricks_cluster": "spark-training-ds-xs",
+      "databricks_user": "you@decathlon.com",
+      "_copy_without_render": [
+        "*.parquet"
+      ],
+      "_template": "git@github.com:dktunited/dps-pyspark-template"
+    }
+  },
+  "directory": null
+}

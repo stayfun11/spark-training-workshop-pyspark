@@ -1,0 +1,8 @@
+# Spark-related configuration
+
+spark.driver.maxResultSize: 3g
+spark.sql.execution.arrow.pyspark.enabled: true
+spark.scheduler.mode: FAIR
+
+# aws
+spark.hadoop.aws.region: eu-west-1

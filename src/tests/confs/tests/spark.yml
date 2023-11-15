@@ -1,0 +1,11 @@
+# Spark-related configuration
+
+spark.driver.maxResultSize: 3g
+spark.sql.execution.arrow.pyspark.enabled: true
+spark.scheduler.mode: FAIR
+
+# This packages will be loaded when application is run directly through 'python'
+spark.jars.packages: io.delta:delta-core_2.12:2.1.1
+
+# aws
+spark.hadoop.aws.region: eu-west-1

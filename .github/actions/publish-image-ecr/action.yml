@@ -1,0 +1,46 @@
+name: Build and publish on ECR
+description: Builds the docker image, and publish it to Elastic Container Registry (ECR)
+inputs:
+  github-action-role: { description: "The role to assume to publish on ECR" }
+  aws-region: { description: "The AWS region to use" }
+  ecr-image-name: { description: "The name of the ECR image" }
+  package-version: { description: "The version of the package" }
+  ca-url-simple: { description: "The URL of the CA registry to install the wheel" }
+  docker-build-platforms: { description: "List of comma-separated platforms for docker build (e.g. 'linux/amd64,linux/arm64/v8') "}
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@master
+      with:
+        role-to-assume: ${{ inputs.github-action-role }}
+        aws-region: ${{ inputs.aws-region }}
+    - name: Load short sha
+      uses: benjlevesque/short-sha@v2.2
+      id: short-sha
+      with:
+        length: 7
+    - name: Bump package version
+      run: make bump-package
+      shell: bash
+    - name: Set up Docker Build
+      uses: docker/setup-buildx-action@v2
+    - name: Publish ECR setup
+      run: make publish-ecr-config publish-ecr-login
+      shell: bash
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        push: true
+        context: docker/
+        tags: >- 
+          ${{ inputs.ecr-image-name }}:${{ inputs.package-version }},
+          ${{ inputs.ecr-image-name }}:latest,
+          ${{ inputs.ecr-image-name }}:${{ env.SHA}}
+        build-args: |
+          INDEX_URL=${{ inputs.ca-url-simple }}
+          PACKAGE_VERSION=${{ inputs.package-version }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: ${{ inputs.docker-build-platforms }}
+

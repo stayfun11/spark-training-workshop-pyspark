@@ -1,0 +1,137 @@
+name: Publish artifacts on ppd & prd
+on:
+  release:
+    types: [ 'published', 'edited' ]
+    branches:
+      - main
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish-wheel-on-release-ca:
+    # Builds the project wheel and publishes it on the 'release' CA repository, hosted on prod account.
+    env:
+      ENV: prod
+    runs-on: decathlon
+    steps:
+      - name: Pre/Post Cleaners
+        uses: dktunited/.github/actions/cleaner@main
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Load env variables
+        uses: ./.github/actions/load-env
+        with:
+          env-file: 'env/${{ env.ENV }}.env'
+      - name: Install Project
+        uses: ./.github/actions/install-project
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          poetry-version: ${{ env.POETRY_VERSION }}
+      - name: Publish on CA
+        uses: ./.github/actions/publish-wheel-ca
+        with:
+          github-action-role: ${{ env.GITHUB_ACTIONS_ROLE }}
+          delete-existing-version: "false"
+
+  publish-confs-and-jobs-on-preprod-bucket:
+    # Publish the conf files onto the S3 dev bucket
+    env:
+      ENV: preprod
+    runs-on: decathlon
+    steps:
+      - name: Pre/Post Cleaners
+        uses: dktunited/.github/actions/cleaner@main
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Load env variables
+        uses: ./.github/actions/load-env
+        with:
+          base-env-file: 'env/base.env'
+          env-file: 'env/${{ env.ENV }}.env'
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: ${{ env.GITHUB_ACTIONS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Publish on S3
+        run: make publish-s3
+
+  publish-image-on-preprod-ecr:
+    # Builds the image docker and publishes it on the preprod ECR repository, hosted on preprod account.
+    # The project is installed in the image using the wheel published by 'publish-on-release-ca' job.
+    needs: publish-wheel-on-release-ca
+    env:
+      ENV: preprod
+    runs-on: decathlon
+    steps:
+      - name: Pre/Post Cleaners
+        uses: dktunited/.github/actions/cleaner@main
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Load env variables
+        uses: ./.github/actions/load-env
+        with:
+          env-file: 'env/${{ env.ENV }}.env'
+      - name: Publish on ECR
+        uses: ./.github/actions/publish-image-ecr
+        with:
+          github-action-role: ${{ env.GITHUB_ACTIONS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+          ecr-image-name: ${{ env.ECR_IMAGE_NAME }}
+          package-version: ${{ env.PACKAGE_VERSION }}
+          ca-url-simple: ${{ env.CA_URL_SIMPLE }}
+          docker-build-platforms: ${{ env.DOCKER_BUILD_PLATFORMS }}
+
+  publish-confs-and-jobs-on-prod-bucket:
+    # Publish the conf files onto the S3 dev bucket
+    env:
+      ENV: prod
+    runs-on: decathlon
+    steps:
+      - name: Pre/Post Cleaners
+        uses: dktunited/.github/actions/cleaner@main
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Load env variables
+        uses: ./.github/actions/load-env
+        with:
+          base-env-file: 'env/base.env'
+          env-file: 'env/${{ env.ENV }}.env'
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: ${{ env.GITHUB_ACTIONS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Publish on S3
+        run: make publish-s3
+
+  publish-image-on-prod-ecr:
+    # Builds the image docker and publishes it on the prod ECR repository, hosted on prod account.
+    # The project is installed in the image using the wheel published by 'publish-on-release-ca' job.
+    needs: publish-wheel-on-release-ca
+    env:
+      ENV: prod
+    runs-on: decathlon
+    steps:
+      - name: Pre/Post Cleaners
+        uses: dktunited/.github/actions/cleaner@main
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Load env variables
+        uses: ./.github/actions/load-env
+        with:
+          env-file: 'env/${{ env.ENV }}.env'
+      - name: Publish on ECR
+        uses: ./.github/actions/publish-image-ecr
+        with:
+          github-action-role: ${{ env.GITHUB_ACTIONS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+          ecr-image-name: ${{ env.ECR_IMAGE_NAME }}
+          package-version: ${{ env.PACKAGE_VERSION }}
+          ca-url-simple: ${{ env.CA_URL_SIMPLE }}
+          docker-build-platforms: ${{ env.DOCKER_BUILD_PLATFORMS }}
+
+
+

@@ -1,0 +1,15 @@
+example_job:
+  inputs:
+    flights:
+      path: 's3://dev-dct-wksp-dps-spark-training/data/inputs/flight-data/csv/*'
+      schema: 'spark_training_workshop_pyspark.io.schemas.flights.SCHEMA'
+      read_args:
+        format: csv
+        header: true
+  outputs:
+    aggregated_flights:
+      path: 's3://dev-dct-wksp-dps-spark-training/sessions/session_20231115/SRAVEL11/data/outputs/aggregated_flights/'
+      schema: 'spark_training_workshop_pyspark.io.schemas.aggregated_flights.SCHEMA'
+      write_args:
+        format: parquet
+        mode: overwrite

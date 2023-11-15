@@ -1,0 +1,45 @@
+# Caches
+.coverage*
+.hypothesis/
+.mypy_cache/
+.pytest_cache/
+
+# Databricks
+/.databricks/
+/.dbx/sync/
+/.dbx/lock.json
+
+# Distributions
+/dist/
+
+# Docker
+/docker/.netrc
+
+# Documentations
+/docs/build/
+/docs/source/_api/
+
+# Environments
+/.venv/
+
+# IDE
+/.idea/
+/.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Project
+/data/
+/mlruns/
+/reports/
+
+# Python
+*.py[cod]
+__pycache__/
+
+# Local
+confs/local/
+
+# Output tests data
+src/tests/data/outputs

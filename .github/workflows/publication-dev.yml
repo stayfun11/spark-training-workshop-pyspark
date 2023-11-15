@@ -1,0 +1,87 @@
+name: Publish artifacts on dev
+on:
+  push:
+    branches:
+      - feat*/*
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ENV: dev
+
+jobs:
+  publish-wheel-on-snapshot-ca:
+    # Builds the project wheel and publishes it on the 'snapshot' CA repository, hosted on preprod account.
+    runs-on: decathlon
+    steps:
+      - name: Pre/Post Cleaners
+        uses: dktunited/.github/actions/cleaner@main
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Load env variables
+        uses: ./.github/actions/load-env
+        with:
+          base-env-file: 'env/base.env'
+          env-file: 'env/${{ env.ENV }}.env'
+      - name: Install Project
+        uses: ./.github/actions/install-project
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          poetry-version: ${{ env.POETRY_VERSION }}
+      - name: Publish on CA
+        uses: ./.github/actions/publish-wheel-ca
+        with:
+          github-action-role: ${{ env.GITHUB_ACTIONS_ROLE }}
+          delete-existing-version: "true"
+
+  publish-confs-and-jobs-on-dev-bucket:
+    # Publish the conf files onto the S3 dev bucket
+    runs-on: decathlon
+    steps:
+      - name: Pre/Post Cleaners
+        uses: dktunited/.github/actions/cleaner@main
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Load env variables
+        uses: ./.github/actions/load-env
+        with:
+          base-env-file: 'env/base.env'
+          env-file: 'env/${{ env.ENV }}.env'
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: ${{ env.GITHUB_ACTIONS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Publish on S3
+        run: make publish-s3
+
+  publish-image-on-dev-ecr:
+    # Builds the image docker and publishes it on the dev ECR repository, hosted on preprod account.
+    # The project is installed in the image using the wheel published by 'publish-on-snapshot-ca' job.
+    needs: publish-wheel-on-snapshot-ca
+    runs-on: decathlon
+    steps:
+      - name: Pre/Post Cleaners
+        uses: dktunited/.github/actions/cleaner@main
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Load env variables
+        uses: ./.github/actions/load-env
+        with:
+          base-env-file: 'env/base.env'
+          env-file: 'env/${{ env.ENV }}.env'
+      - name: Publish on ECR
+        uses: ./.github/actions/publish-image-ecr
+        with:
+          github-action-role: ${{ env.GITHUB_ACTIONS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+          ecr-image-name: ${{ env.ECR_IMAGE_NAME }}
+          package-version: ${{ env.PACKAGE_VERSION }}
+          ca-url-simple: ${{ env.CA_URL_SIMPLE }}
+          docker-build-platforms: ${{ env.DOCKER_BUILD_PLATFORMS }}
+
+
+

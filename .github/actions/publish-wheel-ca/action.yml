@@ -1,0 +1,26 @@
+name: Build and publish on CA
+description: Builds the wheel, and publish it to Code Artifact (CA)
+inputs:
+  github-action-role: { description: "The role to assume to publish on ECR" }
+  delete-existing-version: { default: "false", description: "Weather to delete the existing version in CA before publishing it"}
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@master
+      with:
+        role-to-assume: ${{ inputs.github-action-role }}
+        aws-region: eu-west-1
+    - name: Bump package version
+      run: make bump-package
+      shell: bash
+    - name: Build wheel
+      run: make clean-package build-wheel
+      shell: bash
+    - name: Delete existing version
+      if: ${{ inputs.delete-existing-version == 'true' }}
+      run: make delete-ca-package
+      shell: bash
+    - name: Publish package on CA
+      run: make publish-ca-package
+      shell: bash

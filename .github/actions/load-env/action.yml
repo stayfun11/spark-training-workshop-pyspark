@@ -1,0 +1,19 @@
+name: Load environment variables
+description: Load the variables from a base and an environment file.
+inputs:
+  base-env-file: { description: "The base environment file to load", default: "env/base.env"}
+  env-file: { description: "The environment file to load" }
+runs:
+  using: composite
+  steps:
+      - name: Load base env variables
+        uses: cardinalby/export-env-action@v1
+        with:
+          envFile: ${{ inputs.base-env-file }}
+          expand: 'true'
+      - name: Load env variables
+        uses: cardinalby/export-env-action@v1
+        with:
+          envFile: ${{ inputs.env-file }}
+          expand: 'true'
+

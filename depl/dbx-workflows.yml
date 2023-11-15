@@ -1,0 +1,15 @@
+# Define the databricks workflows of the project.
+# Must be used with `dbx execute` command, e.g.
+# dbx execute \
+#   --deployment-file depl/dbx-workflows.yaml \
+#   --cluster-name=$(DATABRICKS_CLUSTER) \
+#   --workflow example-job`
+build:
+   python: "pip"
+environments:
+  default:
+    workflows:
+      - name: "example-job"
+        spark_python_task:
+          python_file: "file://src/spark_training_workshop_pyspark/jobs/example_job.py"
+          parameters: ["--env", "dev", "--confs-dir", "file:fuse://confs/"]
